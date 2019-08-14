@@ -269,8 +269,8 @@ grafico_duracao_geral <- ggplot(duracao_geral, aes(local, length_minutes, colour
   scale_colour_manual(values=c("#386cb0","#B80062")) +
   stat_summary(fun.y = median, fun.ymin = median, fun.ymax = median,
                  geom = "crossbar", width = 0.5, colour = "#cbcbcb") +
-  annotate("text", label = "Mediana = 66 min", x = 2.3, y = 60, color = "#222222", family="Inconsolata", fontface="bold", size = 3) +
-  annotate("text", label = "Mediana = 46 min", x = 1.3, y = 86, color = "#222222", family="Inconsolata", fontface="bold", size = 3) +
+  annotate("text", label = "Mediana = 46 min", x = 2.3, y = 60, color = "#222222", family="Inconsolata", fontface="bold", size = 3) +
+  annotate("text", label = "Mediana = 66 min", x = 1.3, y = 86, color = "#222222", family="Inconsolata", fontface="bold", size = 3) +
   labs(subtitle="Duração de cada episódio no Brasil e nos EUA entre 3\ne 180 minutos, pelos 100 principais podcasts no Brasil e nos EUA", 
        y="duração em minutos", 
        x="", 
