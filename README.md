@@ -1,5 +1,7 @@
 # Estudo sobre podcasts no Brasil
 
+[ACESSE OS RESULTADOS AQUI](https://www.voltdata.info/conteudo/2019/8/estatsticas-de-podcasts)
+
 **Sérgio Spagnuolo e Lucas Gelape**
 
 *Agosto, 2019*
