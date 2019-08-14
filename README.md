@@ -1,2 +1,345 @@
-# pesquisa-podcasts
-Dados, códigos e documentação de pesquisa sobre podcasts. Data-base agosto/2019
+# Estudo sobre podcasts no Brasil
+
+**Sérgio Spagnuolo e Lucas Gelape**
+
+*Agosto, 2019*
+
+Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). Tanto a raspagem quanto a análise foram feitas em R, no período entre 31 de julho e 01 de agosto.
+
+# Raspagem
+
+Antes de iniciar a raspagem, o usuário deve:
+
+1. Criar uma [conta no Pocket Casts](https://play.pocketcasts.com/web/user/register) - que permite a criação de contas gratuitas para um período de 14 dias de teste.
+2. Instalar o [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/).
+
+Para a raspagem, utilizamos os seguintes pacotes (com suas versões):
+
+```
+library(RSelenium)
+library(stringr)
+
+sessionInfo()
+#R version 3.6.1 (2019-07-05)
+#Running under: macOS Mojave 10.14.6
+#attached base packages:
+#[1] stats     graphics  grDevices utils     datasets  methods   base     
+#
+#other attached packages:
+#[1] stringr_1.4.0   RSelenium_1.7.5
+
+#loaded via a namespace (and not attached):
+# [1] Rcpp_1.0.1       XML_3.98-1.20    binman_0.1.1     assertthat_0.2.1 bitops_1.0-6    
+# [6] magrittr_1.5     semver_0.2.0     stringi_1.4.3    tools_3.6.1      wdman_0.2.4     
+#[11] xfun_0.7         yaml_2.2.0       compiler_3.6.1   askpass_1.1      caTools_1.17.1.2
+#[16] openssl_1.4      knitr_1.23 
+```
+
+Para iniciar, vamos abrir o driver do `RSelenium` que será utilizado. **Atenção:** é necessário que o ChromeDriver seja executado simultaneamente (ou seja, que ele já esteja iniciado antes da configuração do driver do `RSelenium`).
+
+```
+rD <- rsDriver(browser=c("chrome"), 
+               chromever="75.0.3770.140",
+               port = 4567L)
+cliente <- rD$client
+```
+
+O usuário deve ter um navegador do Chrome aberto, com a indicação de que ele está sendo controlado por um software de teste.
+
+## Login na página do usuário no Pocket Casts
+
+Nesta primeira parte, fazemos o login na página do usuário, a partir da qual poderemos navegar na plataforma e selecionar o que será raspado.
+
+```
+# Abre a pagina do Pocket cast no navegador
+cliente$navigate("https://play.pocketcasts.com/web/user/sign_in") 
+
+# Preencher o formulario
+email <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div/div/form/div[1]/input")
+email$sendKeysToElement(list("USUARIO")) # USUARIO = e-mail da sua conta no Pocket Casts
+password <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div/div/form/div[3]/input")
+password$sendKeysToElement(list("SENHA")) # SENHA = senha da sua conta no Pocket Casts
+
+# Clicar para entrar
+entrar <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div/div/form/div[7]/button")
+entrar$clickElement()
+```
+
+Com esse código, preenchemos o e-mail e senha do usuário e entramos na sua conta do Pocket Casts.
+
+## Raspagem dos podcasts mais populares internacionalmente
+
+Para a raspagem dos podcasts mais populares internacionalmente, utilizamos a lista com os [100] podcasts mais populares da plataforma. Na página em que consta essa lista, fizemos *loops* para entrar em cada um dos podcasts e raspar informações de todos os episódios disponibilizados por eles na plataforma.
+
+```
+# Entra na pagina dos podcasts mais populares
+cliente$navigate("https://play.pocketcasts.com/web/discover/list/popular")
+
+# Cria dois objetos vazios onde vamos guardar 
+# (1) as informacoes de cada podcast que estamos raspando (cada iteracao do loop) - podcast_episodes; e 
+# (2) as informacoes "empilhadas" de todos os podcasts - podcast_episodes_final.
+podcast_episodes <- NULL
+podcast_episodes_final <- NULL
+
+# Como sao 100 podcasts, nosso loop tem 100 iteracoes
+for(i in 1:100){
+  
+  # Printa mensagem de inicio de cada podcast
+  print(paste("Iniciado podcast n.", i))
+  
+  # Como o site demora a responder em determinados momentos
+  # e para evitar que o loop quebre em determinado ponto, 
+  # incluimos alguns Sys.sleep (pausas) ao longo das iteracoes
+  Sys.sleep(0.8)
+  
+  #Entrar no podcast
+  podcast <- cliente$findElement(using = "xpath", paste0("/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div/div[2]/div/div[2]/div/div[", i, "]/div[1]/div/img"))
+  
+  Sys.sleep(0.5)
+  
+  podcast$clickElement()
+  
+  Sys.sleep(1.6)
+  
+  # Salvar informacoes de titulo, autor, frequencia e numero de ep do podcast
+  title <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/div[1]/h1")
+  title <- title$getElementText()[[1]]
+  
+  author <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/h2")
+  author <- author$getElementText()[[1]]
+  
+  frequency <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/span")
+  frequency <- frequency$getElementText()[[1]]
+  
+  n_episodes <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[3]/div[1]")
+  n_episodes <- n_episodes$getElementText()[[1]]
+  n_episodes <- substr(n_episodes, 1, str_locate(n_episodes, "EPISODES")[[1]] - 2) # para remover o 0 archived
+  
+  # Eliminar o que estiver gravado no objeto podcast_episodes, para
+  # salvar informacoes sobre os episodios do podcast da iteracao
+  podcast_episodes <- NULL
+  
+  # Printa mensagem para manter o usuario informado do ponto em que esta do loop
+  print(paste("Começando a raspar os episodios do podcast", i))
+  
+  Sys.sleep(0.7)
+  
+  # Raspar informacoes sobre cada ep. do podcast
+  # O numero de iteracoes corresponde ao 
+  # n. de ep. de cada podcast
+  for (j in 1:as.numeric(n_episodes)){
+    
+    Sys.sleep(0.5)
+    
+    # Todas as informacoes que vamos raspar sao capturadas 
+    # pelo mesmo xpath, e vamos extrair os elementos de la
+    info_podcast <- cliente$findElement(using = "xpath", paste0("//div[@aria-rowindex='", j,"']"))
+    Sys.sleep(0.7)
+    
+    info_podcast_text <- info_podcast$getElementText()
+    vetor_info <- str_split(info_podcast_text, "\n")[[1]]
+    
+    # Alguns podcasts colocam informacoes extras (como indicacao de temporada e ep.),
+    # que exigiram a inclusao de um if, para manter a estrutura da raspagem
+    if(length(vetor_info) > 3){
+      
+      # Salva num data.frame a informacao de titulo, data e duracao de cada ep.
+      episode_df <- data.frame(episode_title  = vetor_info[2],
+                               episode_date   = vetor_info[3],
+                               episode_length = vetor_info[4])
+      
+      } else
+    
+    # Salva num data.frame a informacao de titulo, data e duracao de cada ep.
+    episode_df <- data.frame(episode_title  = vetor_info[1],
+                             episode_date   = vetor_info[2],
+                             episode_length = vetor_info[3])
+    
+    # Empilha os data.frames com a informacao de cada ep., com os ep. ja raspados
+    podcast_episodes <- rbind.data.frame(podcast_episodes, episode_df)
+    
+    # Podcasts com mais de 12 episodios exigiram que programassemos
+    # um deslocamento do mouse para baixo na pagina, de forma que
+    # os novos episodios fossem surgindo, para serem raspados
+    if(as.numeric(n_episodes) > 12){
+      
+      # Move o mouse para onde esta o episodio sendo raspado
+      cliente$mouseMoveToLocation(webElement = info_podcast)
+      
+      Sys.sleep(0.7)
+    }
+    
+    # Printa o n. da iteracao referente ao ep. do podcast sendo raspado
+    print(j)
+    
+    Sys.sleep(1.2)
+    
+  }
+  
+  # Aqui, juntamos as informacoes de titulo, autor, frequencia e numero de ep,
+  # raspadas anteriormente, ao nosso banco
+  podcast_episodes$n_episodes <- n_episodes
+  podcast_episodes$title <- title
+  podcast_episodes$author <- author
+  podcast_episodes$frequency <- frequency
+  
+  # Ao final de cada iteracao, juntamos o banco para o podcast da iteracao, 
+  # com o que ja haviamos raspado de outros podcasts
+  podcast_episodes_final <- rbind.data.frame(podcast_episodes_final, podcast_episodes)
+  
+  Sys.sleep(1.0)
+  
+  # Volta a pagina dos podcasts mais populares
+  cliente$navigate("https://play.pocketcasts.com/web/discover/list/popular")
+  
+  Sys.sleep(1.0)
+  
+  # Printa mensagem indicando o fim da iteracao de um podcast
+  print(paste("Terminado podcast n.", i))
+}
+
+# Uma vez finalizado o banco, podemos exporta-lo em varios formatos, como .csv
+write.csv2(podcast_episodes_final, "podcast_episodes_final.csv", row.names = F)
+```
+
+## Raspagem dos podcasts mais populares no Brasil
+
+Para raspar os podcasts mais populares do Brasil, utilizamos uma lista disponível somente na versão do aplicativo para celular do Pocket Casts. Nela, pegamos os nomes e links para todos os podcasts da lista ([disponível aqui]()).
+
+Primeiramente, vamos abrir o banco de dados com a lista de podcasts brasileiros e criar um vetor com o link da página de cada um deles no Pocket Casts.
+
+```
+podcastsbr <- read.csv("podcastsbr.csv")
+podcastsbr_links <- podcastsbr$link
+```
+
+Em seguida, faremos *loops* bastante semelhante àquele programado para raspar as informações de podcasts mais populares internacionalmente. A principal diferença é que não precisaremos mais voltar à pagina dessa lista dos mais populares ao final de cada iteração. Como temos os links para a página de cada um dos podcasts da lista nacional, podemos navegar diretamente para essas páginas e raspá-las.
+
+```
+# Cria dois objetos vazios onde vamos guardar 
+# (1) as informacoes de cada podcast que estamos raspando (cada iteracao do loop) - podcast_episodes; e 
+# (2) as informacoes "empilhadas" de todos os podcasts - podcast_episodes_final.
+podcast_episodes <- NULL
+podcast_episodes_final <- NULL
+
+# O numero de iteracoes do nosso loop e definido pelo numero de links que temos
+for(i in 1:length(podcastsbr_links)){
+  
+  # Printa mensagem de inicio de cada podcast
+  print(paste("Iniciado podcast n.", i))
+  
+  Sys.sleep(1.0)
+  
+  #Entrar no podcast a partir do seu link
+  cliente$navigate(podcastsbr_links[i])
+  
+  # Como o site demora a responder em determinados momentos
+  # e para evitar que o loop quebre em determinado ponto, 
+  # incluimos alguns Sys.sleep (pausas) ao longo das iteracoes
+  Sys.sleep(1.6)
+  
+  # Salvar informacoes de titulo, autor, frequencia e numero de ep do podcast
+  title <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/div[1]/h1")
+  title <- title$getElementText()[[1]]
+  
+  author <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/h2")
+  author <- author$getElementText()[[1]]
+  
+  frequency <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[2]/div[2]/span")
+  frequency <- frequency$getElementText()[[1]]
+  
+  n_episodes <- cliente$findElement(using = "xpath", "/html/body/div[1]/div/div/div[3]/div[1]/div[2]/div[1]/div[3]/div[1]")
+  n_episodes <- n_episodes$getElementText()[[1]]
+  n_episodes <- substr(n_episodes, 1, str_locate(n_episodes, "EPISODES")[[1]] - 2) # para remover o 0 archived
+  
+  # Eliminar o que estiver gravado no objeto podcast_episodes, para
+  # salvar informacoes sobre os episodios do podcast da iteracao
+  podcast_episodes <- NULL
+  
+  # Printa mensagem para manter o usuario informado do ponto em que esta do loop
+  print(paste("Começando a raspar os episodios do podcast", i))
+  
+  Sys.sleep(0.7)
+  
+  # Raspar informacoes sobre cada ep. do podcast
+  # O numero de iteracoes corresponde ao 
+  # n. de ep. de cada podcast
+  for (j in 1:as.numeric(n_episodes)){
+    
+    Sys.sleep(0.5)
+    
+    # Todas as informacoes que vamos raspar sao capturadas 
+    # pelo mesmo xpath, e vamos extrair os elementos de la
+    info_podcast <- cliente$findElement(using = "xpath", paste0("//div[@aria-rowindex='", j,"']"))
+    Sys.sleep(0.7)
+    
+    info_podcast_text <- info_podcast$getElementText()
+    vetor_info <- str_split(info_podcast_text, "\n")[[1]]
+    
+    # Alguns podcasts colocam informacoes extras (como indicacao de temporada e ep.),
+    # que exigiram a inclusao de um if, para manter a estrutura da raspagem
+    if(length(vetor_info) > 3){
+      
+      # Salva num data.frame a informacao de titulo, data e duracao de cada ep.
+      episode_df <- data.frame(episode_title  = vetor_info[2],
+                               episode_date   = vetor_info[3],
+                               episode_length = vetor_info[4])
+      
+    } else
+      
+    # Salva num data.frame a informacao de titulo, data e duracao de cada ep.
+    episode_df <- data.frame(episode_title  = vetor_info[1],
+                               episode_date   = vetor_info[2],
+                               episode_length = vetor_info[3])
+    
+    # Empilha os data.frames com a informacao de cada ep., com os ep. ja raspados
+    podcast_episodes <- rbind.data.frame(podcast_episodes, episode_df)
+    
+    # Podcasts com mais de 12 episodios exigiram que programassemos
+    # um deslocamento do mouse para baixo na pagina, de forma que
+    # os novos episodios fossem surgindo, para serem raspados
+    if(as.numeric(n_episodes) > 12){
+      
+      # Move o mouse para onde esta o episodio sendo raspado
+      cliente$mouseMoveToLocation(webElement = info_podcast)
+      
+      Sys.sleep(0.7)
+    }
+    
+    print(j)
+    
+    Sys.sleep(1.2)
+    
+  }
+  
+  # Aqui, juntamos as informacoes de titulo, autor, frequencia e numero de ep,
+  # raspadas anteriormente, ao nosso banco
+  podcast_episodes$n_episodes <- n_episodes
+  podcast_episodes$title <- title
+  podcast_episodes$author <- author
+  podcast_episodes$frequency <- frequency
+  
+  # Ao final de cada iteracao, juntamos o banco para o podcast da iteracao, 
+  # com o que ja haviamos raspado de outros podcasts
+  podcast_episodes_final <- rbind.data.frame(podcast_episodes_final, podcast_episodes)
+  
+  Sys.sleep(1.0)
+  
+  # Printa mensagem indicando o fim da iteracao de um podcast
+  print(paste("Terminado podcast n.", i))
+}
+
+# Uma vez finalizado o banco, podemos exporta-lo em varios formatos, como .csv
+write.csv2(podcast_episodes_final, "podcast_episodes_final.csv", row.names = F)
+```
+
+## Encerrando a raspagem
+
+Por fim, não se esqueça de encerrar seu driver e fechar seu ChromeDriver.
+
+```
+rD$close()
+```
+
+# Análise
+
