@@ -1,17 +1,4 @@
----
-title: "Estatísticas de podcast no Brasil"
-author: "Sérgio Spagnuolo e Lucas Gelape, do <a href='www.voltdata.info' style='text-decoration:underline'>Volt Data Lab</a> | <em>Seção publicada em 14/08/2019</em>"
-subtitle: "Esta pesquisa analisa metadados dos 100 principais podcasts no Brasil e nos EUA, com informações obtidas via aplicativo Pocket Casts."
-params:
-  duracao: 3
-  min_analise: 10
-  max_analise: 180
-  folder: "~/data/podcasts/analise" 
-output:
-  html_document:
-    keep_md: true
-  includes: header.html
----
+# Análise
 
 Neste arquivo, encontra-se o código para replicação das análises apresentadas no relatório [**Estatísticas e dados do segmento de podcasts no Brasil em 2019**](https://www.voltdata.info/conteudo/2019/estatsticas-de-podcasts). 
 
