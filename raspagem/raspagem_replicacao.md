@@ -216,13 +216,13 @@ write.csv2(podcast_episodes_final, "podcast_episodes_final.csv", row.names = F)
 
 ## Raspagem dos podcasts mais populares no Brasil
 
-Para raspar os podcasts mais populares do Brasil, utilizamos uma lista disponível somente na versão do aplicativo para celular do Pocket Casts. Nela, pegamos os nomes e links para todos os podcasts da lista ([disponível aqui]()).
+Para raspar os podcasts mais populares do Brasil, utilizamos uma lista disponível somente na versão do aplicativo para celular do Pocket Casts. Nela, pegamos os nomes e links para todos os podcasts da lista ([disponível aqui](https://github.com/voltdatalab/pesquisa-podcasts/blob/master/raspagem/podcastsbr.csv)).
 
 Primeiramente, vamos abrir o banco de dados com a lista de podcasts brasileiros e criar um vetor com o link da página de cada um deles no Pocket Casts.
 
 
 ```r
-podcastsbr <- read.csv("podcastsbr.csv")
+podcastsbr <- read.csv("https://raw.githubusercontent.com/voltdatalab/pesquisa-podcasts/master/raspagem/podcastsbr.csv")
 podcastsbr_links <- podcastsbr$link
 ```
 
