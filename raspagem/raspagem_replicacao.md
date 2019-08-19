@@ -1,6 +1,15 @@
-# Raspagem
+---
+title: "Estudo sobre podcasts"
+author: "Sérgio Spagnuolo e Lucas Gelape"
+date: "Agosto, 2019"
+output:
+  html_document:
+    keep_md: true
+---
 
-Este é o código para replicação da raspagem de dados utilizados no relatório [Estatísticas e dados do segmento de podcasts no Brasil em 2019, produzido pela equipe do Volt Data Lab](https://www.voltdata.info/conteudo/2019/8/estatsticas-de-podcasts). A raspagem de dados foi realizada no período entre 31 de julho e 01 de agosto (data-base de referência para os dados utilizados).
+Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). Tanto a raspagem quanto a análise foram feitas em R, no período entre 31 de julho e 01 de agosto.
+
+# Raspagem
 
 Antes de iniciar a raspagem, o usuário deve:
 
@@ -9,29 +18,18 @@ Antes de iniciar a raspagem, o usuário deve:
 
 Para a raspagem, utilizamos os seguintes pacotes (com suas versões):
 
-```
+
+```r
 library(RSelenium)
 library(stringr)
 
 sessionInfo()
-#R version 3.6.1 (2019-07-05)
-#Running under: macOS Mojave 10.14.6
-#attached base packages:
-#[1] stats     graphics  grDevices utils     datasets  methods   base     
-#
-#other attached packages:
-#[1] stringr_1.4.0   RSelenium_1.7.5
-
-#loaded via a namespace (and not attached):
-# [1] Rcpp_1.0.1       XML_3.98-1.20    binman_0.1.1     assertthat_0.2.1 bitops_1.0-6    
-# [6] magrittr_1.5     semver_0.2.0     stringi_1.4.3    tools_3.6.1      wdman_0.2.4     
-#[11] xfun_0.7         yaml_2.2.0       compiler_3.6.1   askpass_1.1      caTools_1.17.1.2
-#[16] openssl_1.4      knitr_1.23 
 ```
 
 Para iniciar, vamos abrir o driver do `RSelenium` que será utilizado. **Atenção:** é necessário que o ChromeDriver seja executado simultaneamente (ou seja, que ele já esteja iniciado antes da configuração do driver do `RSelenium`).
 
-```
+
+```r
 rD <- rsDriver(browser=c("chrome"), 
                chromever="75.0.3770.140",
                port = 4567L)
@@ -44,7 +42,8 @@ O usuário deve ter um navegador do Chrome aberto, com a indicação de que ele 
 
 Nesta primeira parte, fazemos o login na página do usuário, a partir da qual poderemos navegar na plataforma e selecionar o que será raspado.
 
-```
+
+```r
 # Abre a pagina do Pocket cast no navegador
 cliente$navigate("https://play.pocketcasts.com/web/user/sign_in") 
 
@@ -65,7 +64,8 @@ Com esse código, preenchemos o e-mail e senha do usuário e entramos na sua con
 
 Para a raspagem dos podcasts mais populares internacionalmente, utilizamos a lista com os [100] podcasts mais populares da plataforma. Na página em que consta essa lista, fizemos *loops* para entrar em cada um dos podcasts e raspar informações de todos os episódios disponibilizados por eles na plataforma.
 
-```
+
+```r
 # Entra na pagina dos podcasts mais populares
 cliente$navigate("https://play.pocketcasts.com/web/discover/list/popular")
 
@@ -202,14 +202,16 @@ Para raspar os podcasts mais populares do Brasil, utilizamos uma lista disponív
 
 Primeiramente, vamos abrir o banco de dados com a lista de podcasts brasileiros e criar um vetor com o link da página de cada um deles no Pocket Casts.
 
-```
+
+```r
 podcastsbr <- read.csv("podcastsbr.csv")
 podcastsbr_links <- podcastsbr$link
 ```
 
 Em seguida, faremos *loops* bastante semelhante àquele programado para raspar as informações de podcasts mais populares internacionalmente. A principal diferença é que não precisaremos mais voltar à pagina dessa lista dos mais populares ao final de cada iteração. Como temos os links para a página de cada um dos podcasts da lista nacional, podemos navegar diretamente para essas páginas e raspá-las.
 
-```
+
+```r
 # Cria dois objetos vazios onde vamos guardar 
 # (1) as informacoes de cada podcast que estamos raspando (cada iteracao do loop) - podcast_episodes; e 
 # (2) as informacoes "empilhadas" de todos os podcasts - podcast_episodes_final.
@@ -331,7 +333,8 @@ write.csv2(podcast_episodes_final, "podcast_episodes_final.csv", row.names = F)
 
 Por fim, não se esqueça de encerrar seu driver e fechar seu ChromeDriver.
 
-```
+
+```r
 rD$close()
 ```
 
