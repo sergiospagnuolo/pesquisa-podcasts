@@ -199,7 +199,7 @@ Para raspar os podcasts mais populares do Brasil, utilizamos uma lista disponív
 Primeiramente, vamos abrir o banco de dados com a lista de podcasts brasileiros e criar um vetor com o link da página de cada um deles no Pocket Casts.
 
 ```{r, eval=FALSE}
-podcastsbr <- read.csv("podcastsbr.csv")
+podcastsbr <- read.csv("https://raw.githubusercontent.com/voltdatalab/pesquisa-podcasts/master/raspagem/podcastsbr.csv")
 podcastsbr_links <- podcastsbr$link
 ```
 
