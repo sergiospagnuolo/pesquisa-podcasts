@@ -1,15 +1,6 @@
----
-title: "Estudo sobre podcasts"
-author: "Sérgio Spagnuolo e Lucas Gelape"
-date: "Agosto, 2019"
-output:
-  html_document:
-    keep_md: true
----
+# Raspagem
 
 Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). Tanto a raspagem quanto a análise foram feitas em R, no período entre 31 de julho e 01 de agosto.
-
-# Raspagem
 
 Antes de iniciar a raspagem, o usuário deve:
 
