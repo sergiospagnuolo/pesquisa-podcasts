@@ -1,6 +1,15 @@
-# Raspagem
+---
+title: "Estudo sobre podcasts"
+author: "Sérgio Spagnuolo e Lucas Gelape"
+date: "Agosto, 2019"
+output:
+  html_document:
+    keep_md: true
+---
 
 Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). Tanto a raspagem quanto a análise foram feitas em R, no período entre 31 de julho e 01 de agosto.
+
+# Raspagem
 
 Antes de iniciar a raspagem, o usuário deve:
 
@@ -15,6 +24,33 @@ library(RSelenium)
 library(stringr)
 
 sessionInfo()
+```
+
+```
+## R version 3.6.1 (2019-07-05)
+## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+## Running under: macOS Mojave 10.14.6
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] stringr_1.4.0   RSelenium_1.7.5
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_1.0.1       binman_0.1.1     XML_3.98-1.20    assertthat_0.2.1
+##  [5] digest_0.6.19    bitops_1.0-6     semver_0.2.0     magrittr_1.5    
+##  [9] evaluate_0.14    stringi_1.4.3    rmarkdown_1.13   tools_3.6.1     
+## [13] wdman_0.2.4      xfun_0.7         yaml_2.2.0       compiler_3.6.1  
+## [17] askpass_1.1      caTools_1.17.1.2 htmltools_0.3.6  openssl_1.4     
+## [21] knitr_1.23
 ```
 
 Para iniciar, vamos abrir o driver do `RSelenium` que será utilizado. **Atenção:** é necessário que o ChromeDriver seja executado simultaneamente (ou seja, que ele já esteja iniciado antes da configuração do driver do `RSelenium`).

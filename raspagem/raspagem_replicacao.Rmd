@@ -18,7 +18,7 @@ Antes de iniciar a raspagem, o usuário deve:
 
 Para a raspagem, utilizamos os seguintes pacotes (com suas versões):
 
-```{r setup, eval=FALSE}
+```{r setup, message=FALSE}
 library(RSelenium)
 library(stringr)
 
