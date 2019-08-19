@@ -1,6 +1,6 @@
 # Raspagem
 
-Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). Tanto a raspagem quanto a análise foram feitas em R, no período entre 31 de julho e 01 de agosto.
+Neste arquivo, constam instruções sobre como replicar a raspagem dos dados sobre podcasts internacionais e nacionais realizada na plataforma [Pocket Casts](https://play.pocketcasts.com/). A raspagem de dados foi realizada no período entre 31 de julho e 01 de agosto (data-base de referência para os dados utilizados).
 
 Antes de iniciar a raspagem, o usuário deve:
 
